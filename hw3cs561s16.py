@@ -27,7 +27,7 @@ def getNode(fhand):
     name, parent, table = relationship[0], [], []
     # If len(relationship) == 1, No parent
     if len(relationship) == 1:
-        table = fhand.readline().strip()
+        table = [fhand.readline().strip()]
     else:
         # Parents
         parent = relationship[1].strip()
