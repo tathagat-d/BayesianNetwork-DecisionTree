@@ -1,22 +1,34 @@
 #!/usr/bin/python
 
 import sys
+import copy
 
 InFname  = sys.argv[2]
 OutFname = 'output.txt' 
 queries  = list()
+network  = dict()
 
 #==============================================================================
 class Node:
     '''Reperesents Node of Bayesian Network '''
-    def __init__(self):
+    def __init__(self, name, parent, table):
+        self.name   = name
+        self.parent = copy.copy(parent)
+        self.table  = copy.copy(table)
+        # Processing
+        self.__process__()
+
+    def __process__(self):
         pass
+        #print 'Name: ', self.name
+        #print 'Parents:', self.parent
+        #print 'Table: ', self.table
 
 #==============================================================================
 def makeNode(name, parent, table):
-    print 'Name: ', name
-    print 'Parents:', parent
-    print 'Table: ', table
+    # This function exists coz not all names are nodes. Preprocessing required.
+    obj = Node(name, parent, table)
+    network[name] = obj
 
 #==============================================================================
 def getNode(fhand):
@@ -66,3 +78,4 @@ def getData(fname):
 #==============================================================================
 if __name__ == '__main__':
     getData(InFname)
+#==============================================================================
