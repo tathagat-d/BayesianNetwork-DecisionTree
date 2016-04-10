@@ -36,7 +36,7 @@ def getNode(fhand):
     relationship = fhand.readline().strip()
     if not relationship: return False
     relationship = relationship.split('|')
-    name, parent, table = relationship[0], [], []
+    name, parent, table = relationship[0].strip(), [], []
     # If len(relationship) == 1, No parent
     if len(relationship) == 1:
         table = [fhand.readline().strip()]
