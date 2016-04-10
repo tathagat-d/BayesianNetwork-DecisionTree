@@ -76,6 +76,35 @@ def getData(fname):
     getNetwork(fhand)
 
 #==============================================================================
+def trigger(name, known):
+    print name
+    print known
+
+#==============================================================================
+def getProbability(q):
+    q = q.split('|')
+    # Start of IF
+    if len(q) == 1:
+        q = q[0].split(',')
+    else:
+        q[1:] = q[1].split(',')
+    # END of IF
+    known = list()
+    # Start of FOR
+    for x in q:
+        x = x.split(' = ')
+        for index in range(len(x)):
+            x[index] = x[index].strip()
+        known.append(x)
+    # END of FOR
+    # Trigger Tree
+    trigger(known[0][0], known)
+
+#==============================================================================
+
 if __name__ == '__main__':
     getData(InFname)
+    for q in queries:
+        if q.startswith('P'):
+            getProbability(q[2:-1])
 #==============================================================================
