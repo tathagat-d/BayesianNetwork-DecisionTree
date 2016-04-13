@@ -76,17 +76,19 @@ def getData(fname):
     getNetwork(fhand)
 
 #==============================================================================
-def trigger(ask, known):
-    pass
+def trigger(query, value, known):
+    print 'Query: ', query
+    print 'Value: ', value
+    print 'known: ', known
+
 #==============================================================================
 def triggerJoint(ask, known):
-    print 'ASK  :', ask
-    print 'KNOWN:', known
+    for q in ask:
+        trigger(q[0], q[1], known)
 
 #==============================================================================
 def triggerConditional(ask, known):
-    print 'ASK  :', ask
-    print 'KNOWN:', known
+    pass
 
 #==============================================================================
 def getProbability(q):
