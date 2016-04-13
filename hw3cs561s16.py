@@ -77,9 +77,16 @@ def getData(fname):
 
 #==============================================================================
 def trigger(query, value, known):
-    print 'Query: ', query
-    print 'Value: ', value
-    print 'known: ', known
+    obj = network[query]
+    parents = obj.parent
+    #==========================================================================
+    # Base Condition
+    if not parents:
+        if value == '+':
+            return obj.table[0]
+        else:
+            return 1 - obj.table[0]
+    #==========================================================================
 
 #==============================================================================
 def triggerJoint(ask, known):
