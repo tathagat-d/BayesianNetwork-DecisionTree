@@ -76,19 +76,30 @@ def getData(fname):
     getNetwork(fhand)
 
 #==============================================================================
-def trigger(name, known):
-    print name
-    print known
+def trigger(ask, known):
+    pass
+#==============================================================================
+def triggerJoint(ask, known):
+    print 'ASK  :', ask
+    print 'KNOWN:', known
+
+#==============================================================================
+def triggerConditional(ask, known):
+    print 'ASK  :', ask
+    print 'KNOWN:', known
 
 #==============================================================================
 def getProbability(q):
     q = q.split('|')
+    FLAG = False
     # Start of IF
     if len(q) == 1:
+        FLAG = True
         q = q[0].split(',')
     else:
         q[1:] = q[1].split(',')
-    # END of IF
+    #==========================================================================
+    # What is known
     known = list()
     # Start of FOR
     for x in q:
@@ -96,9 +107,15 @@ def getProbability(q):
         for index in range(len(x)):
             x[index] = x[index].strip()
         known.append(x)
-    # END of FOR
-    # Trigger Tree
-    trigger(known[0][0], known)
+    #==========================================================================
+    # What is asked
+    if FLAG:
+        ask = copy.copy(known)
+        triggerJoint(ask, known)
+    else:
+        ask = [copy.copy(known[0])]
+        triggerConditional(ask, known)
+    #==========================================================================
 
 #==============================================================================
 
