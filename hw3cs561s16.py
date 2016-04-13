@@ -83,15 +83,17 @@ def trigger(query, value, known):
     # Base Condition
     if not parents:
         if value == '+':
-            return obj.table[0]
+            return float(obj.table[0])
         else:
-            return 1 - obj.table[0]
+            return 1 - float(obj.table[0])
     #==========================================================================
 
 #==============================================================================
 def triggerJoint(ask, known):
+    probability = 1
     for q in ask:
-        trigger(q[0], q[1], known)
+        probability *= trigger(q[0], q[1], known)
+    print probability
 
 #==============================================================================
 def triggerConditional(ask, known):
