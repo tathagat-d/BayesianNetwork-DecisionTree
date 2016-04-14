@@ -212,7 +212,8 @@ class Driver:
         for q in self.queries:
             if q.startswith('P'):
                 result = self.getProbability(q[2:-1])
-                self.fout.write(str(result))
+                result = format(result, '0.2f')
+                self.fout.write(result)
                 self.fout.write('\n')
         #***********************************************#
         # All the queries are handled, safe to close file
