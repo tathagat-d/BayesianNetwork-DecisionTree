@@ -108,6 +108,26 @@ class Network:
             return result
     # END of ENUMERATE ALL
 
+    # BEGINNING of JOINT ASK
+    def jointAsk(self, query):
+        query = query.split(', ')
+        edict = dict()
+        #*******************************************#
+        for item in query:
+            item = item.split(' = ')
+            if item[1] == '+':
+                edict[item[0].strip()] = True
+            else:
+                edict[item[0].strip()] = False
+        #*******************************************#
+        #print edict
+        bn       = self.net
+        varList  = self.var
+        result   = self.enumerateAll(varList, edict)
+        return result
+    # END of JOINT ASK
+
+
     # BEGINNING of ENUMERATE ASK
     def enumerateAsk(self, query):
         X, var = query[0].split(' = ')
@@ -180,17 +200,23 @@ class Driver:
         # Conditional ?
         query = query.split(' | ')
         # Joint Probability / Maginal Probability
-        if len(query) == 1: pass
+        if len(query) == 1:
+            return self.network.jointAsk(query[0])
         else:
             return self.network.enumerateAsk(query)
     # END of GET PROBABILITY
 
     # BEGINNING of LAUNCH
     def trigger(self):
+        #***********************************************#
         for q in self.queries:
             if q.startswith('P'):
                 result = self.getProbability(q[2:-1])
-                print result
+                self.fout.write(str(result))
+                self.fout.write('\n')
+        #***********************************************#
+        # All the queries are handled, safe to close file
+        self.fout.close()
 
     # END of LAUNCH
 
