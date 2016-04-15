@@ -33,7 +33,7 @@ class Network:
             try:
                 self.net[name]['prob'] = float(fin.readline().strip())
             except:
-                self.net[name]['prob'] = 1.0
+                self.net[name]['decision'] = True
         else:
             self.net[name] = { 'parents' : [], 'table': {} }
             self.net[name]['parents'] = relationship[1].strip().split()
@@ -56,6 +56,9 @@ class Network:
 
     # BEGINNING of GET TABLE
     def getTable(self, name, value, eDict):
+        # Decision Variables?
+        if 'decision' in self.net[name]:
+            return 1.0
         # Independent Variables?
         if 'prob' in self.net[name]:
             if value: return self.net[name]['prob']
