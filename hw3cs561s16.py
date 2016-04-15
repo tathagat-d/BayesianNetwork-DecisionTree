@@ -30,7 +30,10 @@ class Network:
 
         if len(relationship) == 1:
             self.net[name] = { 'prob' : 0.0 }
-            self.net[name]['prob'] = float(fin.readline().strip())
+            try:
+                self.net[name]['prob'] = float(fin.readline().strip())
+            except:
+                self.net[name]['prob'] = 1.0
         else:
             self.net[name] = { 'parents' : [], 'table': {} }
             self.net[name]['parents'] = relationship[1].strip().split()
