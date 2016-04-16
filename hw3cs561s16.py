@@ -303,67 +303,6 @@ class Network:
             return result
     # End of my utility
 
-    def jointUtilityAsk(self, query):
-        query   = query.split(', ')
-        edict   = dict()
-        bn      = self.net
-        varList = self.var
-        dest    = bn['utility']['table'].keys()
-        parents = bn['utility']['parents']
-        result  = 0.0
-        solution= dict()
-        #*******************************************#
-        for item in query:
-            item = item.split(' = ')
-            if item[1] == '+':
-                edict[item[0].strip()] = True
-            else:
-                edict[item[0].strip()] = False
-        #*******************************************#
-        '''
-        print query
-        print 'KNOWN: ', edict
-        print 'TABLE:' , dest
-        '''
-        for combination in dest:
-            temp = copy.copy(edict)
-            for index, item in enumerate(combination):
-                temp[parents[index]] = item
-            r = self.enumerateAll(varList, temp)
-            u = bn['utility']['table'][combination]
-            solution[combination] = r * u
-            '''
-            print r
-            print u
-        print solution
-            '''
-
-        # What values should we add
-        #=======================================================#
-        temp    = bn['utility']['table'].keys()
-        dest    = list()
-        for parent in bn['utility']['parents']:
-            if parent in edict:
-                dest.append(edict[parent])
-            else:
-                dest.append(None)
-        final_list=[]
-        for each_t in temp:
-            flag=0
-            for i in range(len(dest)):
-                if dest[i]!=None and dest[i]!=each_t[i]:
-                    flag=1
-                    break
-            if not flag:
-                final_list.append(each_t)
-        #print final_list
-        #=======================================================#
-
-        for key in solution:
-            if key in final_list:
-                result += solution[key]
-        return int(round(result))
-
 #============================END OF NETWORK CLASS==============================
 
 #=========================BEGINNING OF DRIVER CLASS============================
@@ -409,14 +348,6 @@ class Driver:
     def getUtility(self, query):
         result = self.network.myUtilityAsk(query[3:-1])
         return result
-        '''
-        query = query.split(' | ')
-        if len(query) == 1:
-            return self.network.jointUtilityAsk(query[0])
-        else:
-            self.network.conUtilityAsk(query)
-        #return self.network.utilityAsk(query)
-        '''
     # END of GET UTILITY
 
     # BEGINNING of LAUNCH
