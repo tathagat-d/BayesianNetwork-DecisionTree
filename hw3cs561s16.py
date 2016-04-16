@@ -195,6 +195,32 @@ class Network:
         '''
     # END of ENUMERATE ASK
 
+    # BEGINNING of UTILITY ASK
+    def utilityAsk(self, query):
+        query = query.split(' | ')
+        edict = dict()
+        if len(query) > 1:
+            query[1:] = query[1].split(', ')
+        #********************************************#
+        for item in query:
+            item = item.split(' = ')
+            if item[1] == '+':
+                edict[item[0].strip()] = True
+            else:
+                edict[item[0].strip()] = False
+        #********************************************#
+        varList = self.var
+        bn      = self.net
+        '''
+        edict[bn['utility']['parents'][0]] = True
+        r1 = self.enumerateAll(varList, edict)
+        r2 = 1.0 - r1
+        r1 = r1 * bn['utility']['table'][(True,)]
+        r2 = r2 * bn['utility']['table'][(False,)]
+        print int(round(r1 + r2))
+        '''
+    # END of UTILITY ASK
+
 #============================END OF NETWORK CLASS==============================
 
 #=========================BEGINNING OF DRIVER CLASS============================
@@ -236,6 +262,11 @@ class Driver:
             return self.network.enumerateAsk(query)
     # END of GET PROBABILITY
 
+    # BEGINNING of GET UTILITY
+    def getUtility(self, query):
+        return self.network.utilityAsk(query)
+    # END of GET UTILITY
+
     # BEGINNING of LAUNCH
     def trigger(self):
         #***********************************************#
@@ -246,7 +277,7 @@ class Driver:
                 self.fout.write(result)
                 self.fout.write('\n')
             elif q.startswith('EU'):
-                pass
+                result = self.getUtility(q[3:-1])
             elif q.startswith('MEU'):
                 pass
             else:
