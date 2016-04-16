@@ -195,31 +195,38 @@ class Network:
         '''
     # END of ENUMERATE ASK
 
-    # BEGINNING of UTILITY ASK
-    def utilityAsk(self, query):
-        query = query.split(' | ')
-        edict = dict()
-        if len(query) > 1:
-            query[1:] = query[1].split(', ')
-        #********************************************#
+    def conUtilityAsk(self, query):
+        pass
+
+    def jointUtilityAsk(self, query):
+        query   = query.split(', ')
+        edict   = dict()
+        bn      = self.net
+        varList = self.var
+        dest    = bn['utility']['table'].keys()
+        parents = bn['utility']['parents']
+        solution= dict()
+        #*******************************************#
         for item in query:
             item = item.split(' = ')
             if item[1] == '+':
                 edict[item[0].strip()] = True
             else:
                 edict[item[0].strip()] = False
-        #********************************************#
-        varList = self.var
-        bn      = self.net
+        #*******************************************#
         '''
-        edict[bn['utility']['parents'][0]] = True
-        r1 = self.enumerateAll(varList, edict)
-        r2 = 1.0 - r1
-        r1 = r1 * bn['utility']['table'][(True,)]
-        r2 = r2 * bn['utility']['table'][(False,)]
-        print int(round(r1 + r2))
+        print query
+        print 'KNOWN: ', edict
+        print 'TABLE:' , dest
         '''
-    # END of UTILITY ASK
+        for combination in dest:
+            temp = copy.copy(edict)
+            for index, item in enumerate(combination):
+                temp[parents[index]] = item
+            r = self.enumerateAll(varList, temp)
+            u = bn['utility']['table'][combination]
+            solution[combination] = r * u
+        print solution
 
 #============================END OF NETWORK CLASS==============================
 
@@ -264,7 +271,12 @@ class Driver:
 
     # BEGINNING of GET UTILITY
     def getUtility(self, query):
-        return self.network.utilityAsk(query)
+        query = query.split(' | ')
+        if len(query) == 1:
+            self.network.jointUtilityAsk(query[0])
+        else:
+            self.network.conUtilityAsk(query)
+        #return self.network.utilityAsk(query)
     # END of GET UTILITY
 
     # BEGINNING of LAUNCH
