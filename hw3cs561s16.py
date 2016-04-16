@@ -18,6 +18,20 @@ class Network:
             if not status: break
     # END of CONSTRUCTOR
 
+    # BEGINNING of SET TABLE
+    def _setTable(self, fin, name):
+        # How are we storing the probability table?
+        for x in range(pow(2, len(self.net[name]['parents']))):
+            line = fin.readline().strip().split()
+            value= float(line[0])
+            line = line[1:]
+            for i in range(len(line)):
+                if line[i] == '+': line[i] = True
+                else: line[i] = False
+            line = tuple(line)
+            self.net[name]['table'][line] = value
+    # END of SET TABLE
+
     # BEGINNING of GET NODE
     def _getNode(self, fin):
         relationship = fin.readline().strip()
@@ -28,6 +42,8 @@ class Network:
         self.var.append(name)
         #self.net[name] = { 'parents' : [], 'prob' : 0.0, 'table': {} }
 
+        # Normal Nodes
+        #***************************************************************#
         if len(relationship) == 1:
             self.net[name] = { 'prob' : 0.0 }
             try:
@@ -37,18 +53,9 @@ class Network:
         else:
             self.net[name] = { 'parents' : [], 'table': {} }
             self.net[name]['parents'] = relationship[1].strip().split()
-            #***********************************************************#
-            # How are we storing the probability table?
-            for x in range(pow(2, len(self.net[name]['parents']))):
-                line = fin.readline().strip().split()
-                value= float(line[0])
-                line = line[1:]
-                for i in range(len(line)):
-                    if line[i] == '+': line[i] = True
-                    else: line[i] = False
-                line = tuple(line)
-                self.net[name]['table'][line] = value
-            #***********************************************************#
+            self._setTable(fin, name)
+        #***************************************************************#
+
         # Are we expecting utility node?
         #***************************************************************#
         if fin.readline().strip() == '******':
@@ -57,23 +64,7 @@ class Network:
             name = relationship[0].strip()
             self.net[name] = { 'parents' : [], 'table': {} }
             self.net[name]['parents'] = relationship[1].strip().split()
-            #***********************************************************#
-            # How are we storing the probability table?
-            for x in range(pow(2, len(self.net[name]['parents']))):
-                line = fin.readline().strip().split()
-                value= float(line[0])
-                line = line[1:]
-                for i in range(len(line)):
-                    if line[i] == '+': line[i] = True
-                    else: line[i] = False
-                line = tuple(line)
-                self.net[name]['table'][line] = value
-            #***********************************************************#
-            '''
-            print relationship
-            print self.net[name]['parents']
-            print self.net[name]['table']
-            '''
+            self._setTable(fin, name)
         #***************************************************************#
         return True
     # END of GET NODE
@@ -195,8 +186,58 @@ class Network:
         '''
     # END of ENUMERATE ASK
 
-    def conUtilityAsk(self, query):
-        pass
+    # I HAVE ONE PARENT
+    def oneParentCompute(self, edict):
+        varList = self.var
+        solution= dict()
+        X = self.net['utility']['parents'][0]
+        U = self.net['utility']['table']
+        edict[X] = True
+        r1 = self.enumerateAll(varList, edict)
+        edict[X] = False
+        r2 = self.enumerateAll(varList, edict)
+        result1 = r1/(r1 + r2)
+        result2 =  1 - result1
+        solution[(True,)]  = result1 * U[(True,)]
+        solution[(False,)] = result2 * U[(False,)]
+        del edict[X]
+        return solution
+    # I HAVE ONE PARENT
+
+    def oneParent(self, parent, edict):
+        flag, value = False, False
+        if parent in edict:
+            flag, value = True, edict[parent]
+        # Getting the enumerated table
+        solution = self.oneParentCompute(edict)
+        result   = 0.0
+        if not flag:
+            result += solution[(True,)]
+            result += solution[(False,)]
+        else:
+            if not value:
+                result += solution[(False,)]
+            else:
+                result += solution[(True,)]
+        return result
+
+    def myUtilityAsk(self, query):
+        query  = query.split(' | ')
+        edict  = dict()
+        parents= self.net['utility']['parents']
+        #*******************************************#
+        for item in query:
+            item = item.split(' = ')
+            if item[1] == '+':
+                edict[item[0].strip()] = True
+            else:
+                edict[item[0].strip()] = False
+        #*******************************************#
+        # Dealing with only one parent
+        if len(parents) == 1:
+            parent = parents[0]
+            result = self.oneParent(parent, edict)
+            return result
 
     def jointUtilityAsk(self, query):
         query   = query.split(', ')
@@ -302,12 +343,16 @@ class Driver:
 
     # BEGINNING of GET UTILITY
     def getUtility(self, query):
+        result = self.network.myUtilityAsk(query[3:-1])
+        return result
+        '''
         query = query.split(' | ')
         if len(query) == 1:
             return self.network.jointUtilityAsk(query[0])
         else:
             self.network.conUtilityAsk(query)
         #return self.network.utilityAsk(query)
+        '''
     # END of GET UTILITY
 
     # BEGINNING of LAUNCH
@@ -320,10 +365,10 @@ class Driver:
                 self.fout.write(result)
                 self.fout.write('\n')
             elif q.startswith('EU'):
-                result = self.getUtility(q[3:-1])
+                result = self.getUtility(q)
+                result = int(round(result))
                 self.fout.write(str(result))
                 self.fout.write('\n')
-                #print result
             elif q.startswith('MEU'):
                 pass
             else:
