@@ -49,8 +49,32 @@ class Network:
                 line = tuple(line)
                 self.net[name]['table'][line] = value
             #***********************************************************#
-        # Ignoring the *** delimiter
-        fin.readline()
+        # Are we expecting utility node?
+        #***************************************************************#
+        if fin.readline().strip() == '******':
+            relationship = fin.readline().strip()
+            relationship = relationship.split(' | ')
+            name = relationship[0].strip()
+            self.net[name] = { 'parents' : [], 'table': {} }
+            self.net[name]['parents'] = relationship[1].strip().split()
+            #***********************************************************#
+            # How are we storing the probability table?
+            for x in range(pow(2, len(self.net[name]['parents']))):
+                line = fin.readline().strip().split()
+                value= float(line[0])
+                line = line[1:]
+                for i in range(len(line)):
+                    if line[i] == '+': line[i] = True
+                    else: line[i] = False
+                line = tuple(line)
+                self.net[name]['table'][line] = value
+            #***********************************************************#
+            '''
+            print relationship
+            print self.net[name]['parents']
+            print self.net[name]['table']
+            '''
+        #***************************************************************#
         return True
     # END of GET NODE
 
@@ -221,6 +245,12 @@ class Driver:
                 result = format(result, '0.2f')
                 self.fout.write(result)
                 self.fout.write('\n')
+            elif q.startswith('EU'):
+                pass
+            elif q.startswith('MEU'):
+                pass
+            else:
+                print 'How did we end up here??'
         #***********************************************#
         # All the queries are handled, safe to close file
         self.fout.close()
