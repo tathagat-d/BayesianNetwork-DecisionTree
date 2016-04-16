@@ -221,8 +221,68 @@ class Network:
                 result += solution[(True,)]
         return result
 
+    def twoParentCompute(self, edict):
+        varList = self.var
+        solution= dict()
+        combination = self.net['utility']['table'].keys()
+        parents = self.net['utility']['parents']
+        U = self.net['utility']['table']
+
+        for item in combination:
+            newDict = copy.copy(edict)
+            for parent, elem in zip(parents, item):
+                newDict[parent] = elem
+            result = self.enumerateAll(varList, newDict)
+            result = result * U[item]
+            solution[item] = result
+        return solution
+
+    def twoParent(self, parents, edict):
+        known = dict()
+        for parent in parents:
+            if parent in edict:
+                known[parent] = edict[parent]
+        solution = self.twoParentCompute(edict)
+        # How many parents are known
+        # CASE 1 : 0
+        result = 0.0
+        if len(known) == 0:
+            result = sum(solution.values())
+        # CASE 2 : 1 parent is known which one?
+        if len(known) == 1:
+            if parents[0] in known:
+                result += solution[(known[parents[0]], True)]
+                result += solution[(known[parents[0]], False)]
+            else:
+                result += solution[(True, known[parents[1]])]
+                result += solution[(False, known[parents[1]])]
+        # CASE 3 : All parents are known
+        if len(known) == 2:
+            # (False, False)
+            if not parents[0] and not parents[1]:
+                result += solution[(False, False)]
+            # (False, True)
+            elif not parents[0] and parents[1]:
+                result += solution[(False, True)]
+            # (True, False)
+            elif parents[0] and not parents[1]:
+                result += solution[(True, False)]
+            # (True, True)
+            elif parents[0] and parents[1]:
+                result += solution[(True, True)]
+
+        return result
+
+    # Start of my utility
     def myUtilityAsk(self, query):
         query  = query.split(' | ')
+        dest   = list()
+
+        for index in range(len(query)):
+            q = query[index].split(', ')
+            dest.extend(q)
+
+        query = dest
         edict  = dict()
         parents= self.net['utility']['parents']
         #*******************************************#
@@ -238,6 +298,10 @@ class Network:
             parent = parents[0]
             result = self.oneParent(parent, edict)
             return result
+        if len(parents) == 2:
+            result = self.twoParent(parents, edict)
+            return result
+    # End of my utility
 
     def jointUtilityAsk(self, query):
         query   = query.split(', ')
