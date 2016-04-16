@@ -205,6 +205,7 @@ class Network:
         varList = self.var
         dest    = bn['utility']['table'].keys()
         parents = bn['utility']['parents']
+        result  = 0.0
         solution= dict()
         #*******************************************#
         for item in query:
@@ -226,7 +227,37 @@ class Network:
             r = self.enumerateAll(varList, temp)
             u = bn['utility']['table'][combination]
             solution[combination] = r * u
+            '''
+            print r
+            print u
         print solution
+            '''
+
+        # What values should we add
+        #=======================================================#
+        temp    = bn['utility']['table'].keys()
+        dest    = list()
+        for parent in bn['utility']['parents']:
+            if parent in edict:
+                dest.append(edict[parent])
+            else:
+                dest.append(None)
+        final_list=[]
+        for each_t in temp:
+            flag=0
+            for i in range(len(dest)):
+                if dest[i]!=None and dest[i]!=each_t[i]:
+                    flag=1
+                    break
+            if not flag:
+                final_list.append(each_t)
+        #print final_list
+        #=======================================================#
+
+        for key in solution:
+            if key in final_list:
+                result += solution[key]
+        return int(round(result))
 
 #============================END OF NETWORK CLASS==============================
 
@@ -273,7 +304,7 @@ class Driver:
     def getUtility(self, query):
         query = query.split(' | ')
         if len(query) == 1:
-            self.network.jointUtilityAsk(query[0])
+            return self.network.jointUtilityAsk(query[0])
         else:
             self.network.conUtilityAsk(query)
         #return self.network.utilityAsk(query)
@@ -290,6 +321,9 @@ class Driver:
                 self.fout.write('\n')
             elif q.startswith('EU'):
                 result = self.getUtility(q[3:-1])
+                self.fout.write(str(result))
+                self.fout.write('\n')
+                #print result
             elif q.startswith('MEU'):
                 pass
             else:
