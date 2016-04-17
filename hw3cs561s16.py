@@ -239,6 +239,7 @@ class Network:
             solution[item] = result
         return solution
 
+    # Start of TWO PARENT
     def twoParent(self, parents, edict):
         known = dict()
         for parent in parents:
@@ -274,6 +275,52 @@ class Network:
                 result += solution[(True, True)]
 
         return result
+    # END of TWO PARENT
+
+    # Start of Three Parents
+    def threeParent(self, parents, edict):
+        known = dict()
+        for parent in parents:
+            if parent in edict:
+                known[parent] = edict[parent]
+        solution = self.twoParentCompute(edict)
+        # How many parents are known
+        # CASE 1 : 0
+        result = 0.0
+        if len(known) == 0:
+            result = sum(solution.values())
+        # CASE 2 : 1 parent is known which one?
+        elif len(known) == 1:
+            if parents[0] in known:
+                result += solution[(known[parents[0]], False, False)]
+                result += solution[(known[parents[0]], False, True)]
+                result += solution[(known[parents[0]], True, False)]
+                result += solution[(known[parents[0]], True, True)]
+            elif parents[1] in known:
+                result += solution[(False, known[parents[0]], False)]
+                result += solution[(False, known[parents[0]], True)]
+                result += solution[(True, known[parents[0]], False)]
+                result += solution[(True, known[parents[0]], True)]
+            else:
+                result += solution[(False, False, known[parents[0]])]
+                result += solution[(False, True, known[parents[0]])]
+                result += solution[(True, False, known[parents[0]])]
+                result += solution[(True, True, known[parents[0]])]
+        elif len(known) == 2:
+            if parents[0] in known and parents[1] in known:
+                result += solution[(known[parents[0]],known[parents[1]],False)]
+                result += solution[(known[parents[0]],known[parents[1]],True)]
+            elif parents[0] in known and parents[2] in known:
+                result += solution[(known[parents[0]],False, known[parents[2]])]
+                result += solution[(known[parents[0]],True, known[parents[2]])]
+            else:
+                result += solution[(False, known[parents[1]], known[parents[2]])]
+                result += solution[(True, known[parents[1]], known[parents[2]])]
+        else:
+                result += solution[(known[parents[0]], known[parents[1]], known[parents[2]])]
+
+        return result
+    # EnD of Three Parents
 
     # Start of my utility
     def utilityAsk(self, query):
@@ -300,8 +347,11 @@ class Network:
             parent = parents[0]
             result = self.oneParent(parent, edict)
             return result
-        if len(parents) == 2:
+        elif len(parents) == 2:
             result = self.twoParent(parents, edict)
+            return result
+        else:
+            result = self.threeParent(parents, edict)
             return result
     # End of my utility
 
@@ -312,13 +362,15 @@ class Network:
         parents  = self.net['utility']['parents']
         for val in [True, False]:
             newDict[dec] = val
+            #==============================================#
             if len(parents) == 1:
                 parent = parents[0]
                 result = self.oneParent(parent, newDict)
             elif len(parents) == 2:
-                result = self.twoParent(parents, edict)
-            elif len(parents) == 3:
-                pass
+                result = self.twoParent(parents, newDict)
+            else:
+                result = self.threeParent(parents, newDict)
+            #==============================================#
             solution[(val,)] = result
 
         if solution[(True,)] > solution[(False,)]:
@@ -328,7 +380,7 @@ class Network:
             result = int(round(solution[(False,)]))
             result = '- ' + str(result)
         return result
-    # Beginning of one Decision
+    # END of one Decision
 
     def twoDecision(self, decisionList, edict):
         newDict = copy.copy(edict)
@@ -338,13 +390,15 @@ class Network:
         for truth in enum:
             newDict[decisionList[0]] = truth[0]
             newDict[decisionList[1]] = truth[1]
+            #===============================================#
             if len(parents) == 1:
                 parent = parents[0]
                 result = self.oneParent(parent, newDict)
             elif len(parents) == 2:
                 result = self.twoParent(parents, newDict)
-            elif len(parents) == 3:
-                pass
+            else:
+                result = self.threeParent(parents, newDict)
+            #===============================================#
             solution[truth] = result
 
         # BASIC PROCESSING
@@ -366,6 +420,57 @@ class Network:
             result = '+ + ' + localMax
         #*******************************************#
         return result
+
+    def threeDecision(self, decisionList, edict):
+        newDict = copy.copy(edict)
+        solution= dict()
+        parents = self.net['utility']['parents']
+        enum    = [(False, False, False), (False, False, True),
+                   (False, True, False),  (False, True, True),
+                   (True, False, False),(True, False, True),
+                   (True, True, False), (True, True, True)]
+        for truth in enum:
+            newDict[decisionList[0]] = truth[0]
+            newDict[decisionList[1]] = truth[1]
+            #===============================================#
+            if len(parents) == 1:
+                parent = parents[0]
+                result = self.oneParent(parent, newDict)
+            elif len(parents) == 2:
+                result = self.twoParent(parents, newDict)
+            else:
+                result = self.threeParent(parents, newDict)
+            #===============================================#
+            solution[truth] = result
+
+        # BASIC PROCESSING
+        #*******************************************#
+        localKey = None
+        localMax = None
+        for key, value in solution.items():
+            if localMax == None or localMax < value:
+                localKey = key
+                localMax = value
+        localMax = str(int(round(localMax)))
+        if localKey == (False, False, False):
+            result = '- - - ' + localMax
+        elif localKey == (False, False, True):
+            result = '- - + ' + localMax
+        elif localKey == (False, True, False):
+            result = '- + - ' + localMax
+        elif localKey == (False, True, True):
+            result = '- + + ' + localMax
+        if localKey == (True, False, False):
+            result = '+ - - ' + localMax
+        if localKey == (True, False, True):
+            result = '+ - + ' + localMax
+        if localKey == (True, True, False):
+            result = '+ + - ' + localMax
+        else:
+            result = '+ + + ' + localMax
+        #*******************************************#
+        return result
+
 
     def maxUtilityAsk(self, query):
         query = query.split(' | ')
@@ -390,11 +495,12 @@ class Network:
         if len(self.decision) == 1:
             solution = self.oneDecision(newQuery[0], edict)
             return solution
-        if len(self.decision) == 2:
+        elif len(self.decision) == 2:
             solution = self.twoDecision(newQuery, edict)
             return solution
-        if len(self.decision) == 3:
-            pass
+        else:
+            solution = self.threeDecision(newQuery, edict)
+            return solution
 
 #============================END OF NETWORK CLASS==============================
 
