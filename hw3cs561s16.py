@@ -11,8 +11,9 @@ class Network:
     # BEGINNING of CONSTRUCTOR
     def __init__ (self, fin, fout):
         # Need a data-structure to store all nodes
-        self.net = dict()
-        self.var = list()
+        self.net      = dict()
+        self.var      = list()
+        self.decision = list()
         while True:
             status = self._getNode(fin)
             if not status: break
@@ -50,6 +51,7 @@ class Network:
                 self.net[name]['prob'] = float(fin.readline().strip())
             except:
                 self.net[name]['decision'] = True
+                self.decision.append(name)
         else:
             self.net[name] = { 'parents' : [], 'table': {} }
             self.net[name]['parents'] = relationship[1].strip().split()
@@ -274,7 +276,7 @@ class Network:
         return result
 
     # Start of my utility
-    def myUtilityAsk(self, query):
+    def utilityAsk(self, query):
         query  = query.split(' | ')
         dest   = list()
 
@@ -302,6 +304,97 @@ class Network:
             result = self.twoParent(parents, edict)
             return result
     # End of my utility
+
+    # Beginning of one Decision
+    def oneDecision(self, dec, edict):
+        newDict  = copy.copy(edict)
+        solution = dict()
+        parents  = self.net['utility']['parents']
+        for val in [True, False]:
+            newDict[dec] = val
+            if len(parents) == 1:
+                parent = parents[0]
+                result = self.oneParent(parent, newDict)
+            elif len(parents) == 2:
+                result = self.twoParent(parents, edict)
+            elif len(parents) == 3:
+                pass
+            solution[(val,)] = result
+
+        if solution[(True,)] > solution[(False,)]:
+            result = int(round(solution[(True,)]))
+            result = '+ ' + str(result)
+        else:
+            result = int(round(solution[(False,)]))
+            result = '- ' + str(result)
+        return result
+    # Beginning of one Decision
+
+    def twoDecision(self, decisionList, edict):
+        newDict = copy.copy(edict)
+        solution= dict()
+        parents = self.net['utility']['parents']
+        enum    = [(False, False), (False, True), (True, False), (True, True)]
+        for truth in enum:
+            newDict[decisionList[0]] = truth[0]
+            newDict[decisionList[1]] = truth[1]
+            if len(parents) == 1:
+                parent = parents[0]
+                result = self.oneParent(parent, newDict)
+            elif len(parents) == 2:
+                result = self.twoParent(parents, newDict)
+            elif len(parents) == 3:
+                pass
+            solution[truth] = result
+
+        # BASIC PROCESSING
+        #*******************************************#
+        localKey = None
+        localMax = None
+        for key, value in solution.items():
+            if localMax == None or localMax < value:
+                localKey = key
+                localMax = value
+        localMax = str(int(round(localMax)))
+        if localKey == (False, False):
+            result = '- - ' + localMax
+        elif localKey == (False, True):
+            result = '- + ' + localMax
+        elif localKey == (True, False):
+            result = '+ - ' + localMax
+        else:
+            result = '+ + ' + localMax
+        #*******************************************#
+        return result
+
+    def maxUtilityAsk(self, query):
+        query = query.split(' | ')
+        dest  = list()
+        edict = dict()
+        known = dict()
+        newQuery = list()
+        for index in range(len(query)):
+            q = query[index].split(', ')
+            dest.extend(q)
+        #*******************************************#
+        for item in dest:
+            item = item.split(' = ')
+            if item[0].strip() in self.decision:
+                newQuery.append(item[0].strip())
+                continue
+            if item[1] == '+':
+                edict[item[0].strip()] = True
+            else:
+                edict[item[0].strip()] = False
+        #*******************************************#
+        if len(self.decision) == 1:
+            solution = self.oneDecision(newQuery[0], edict)
+            return solution
+        if len(self.decision) == 2:
+            solution = self.twoDecision(newQuery, edict)
+            return solution
+        if len(self.decision) == 3:
+            pass
 
 #============================END OF NETWORK CLASS==============================
 
@@ -344,9 +437,13 @@ class Driver:
             return self.network.enumerateAsk(query)
     # END of GET PROBABILITY
 
+    def getMaxUtility(self, query):
+        result = self.network.maxUtilityAsk(query[4:-1])
+        return result
+
     # BEGINNING of GET UTILITY
     def getUtility(self, query):
-        result = self.network.myUtilityAsk(query[3:-1])
+        result = self.network.utilityAsk(query[3:-1])
         return result
     # END of GET UTILITY
 
@@ -365,7 +462,9 @@ class Driver:
                 self.fout.write(str(result))
                 self.fout.write('\n')
             elif q.startswith('MEU'):
-                pass
+                result = self.getMaxUtility(q)
+                self.fout.write(result)
+                self.fout.write('\n')
             else:
                 print 'How did we end up here??'
         #***********************************************#
